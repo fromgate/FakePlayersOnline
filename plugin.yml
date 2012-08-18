@@ -1,0 +1,10 @@
+name: FakePlayersOnline
+main: fromgate.fakeplayersonline.FakePlayersOnline
+version: 0.0.1
+author: fromgate
+softdepend: [Citizens]
+commands:
+   fpo:
+      description: FakePlayersOnline commands
+      usage: |
+           /fpo help
