@@ -46,7 +46,7 @@ public class FakePlayersOnline extends JavaPlugin {
 	boolean tid_fake_active = false;
 	int tid_npc = -1;
 	boolean tid_npc_active = false;
-	
+
 
 	// Конфигурация
 	boolean version_check = true;
@@ -54,19 +54,19 @@ public class FakePlayersOnline extends JavaPlugin {
 	boolean language_save = false;
 	int fakeupdatetime = 5; //секунды
 	int npclistupdatetime = 60; //в секундах
-	
+
 	boolean fake = true;
 	String fake_px = "&e";
 	List<String> fakeplayers = new ArrayList<String>();
-	
-	
+
+
 	boolean npc_enabled = false;
 	boolean npc = true;
 	String npc_px = "&3";
-	
+
 	boolean ban = true;
 	String ban_px = "&4";
-	
+
 	List<String> npclist = new ArrayList<String>();
 	List<String> banned = new ArrayList<String>();
 
@@ -77,26 +77,26 @@ public class FakePlayersOnline extends JavaPlugin {
 		u = new FPOUtil (this, version_check, language_save, language, "fakeplayers", "FakePlayersOnline","fpo","&3[FPO]&f");
 		cmd = new FPOCmd (this);
 		getCommand ("fpo").setExecutor(cmd);
-		
+
 		npc_enabled = isCitzensInstalled();
-		
+
 		if (npc_enabled) log.info("[FakePlayersOnline] Citizens is found!");
 		else log.info("[FakePlayersOnline] Citizens is not found!");
 
 		restartTicks();
-		
+
 		try {
 			MetricsLite metrics = new MetricsLite(this);
 			metrics.start();
 		} catch (IOException e) {
 			log.info("[FakePlayersOnline] failed to submit stats to the Metrics (mcstats.org)");
 		}
-	
+
 	}
 
-	
 
-	
+
+
 	public void sendAllFakes(boolean show){
 		for (Player p: Bukkit.getOnlinePlayers()){
 			if (p.isOnline()) {
@@ -105,10 +105,15 @@ public class FakePlayersOnline extends JavaPlugin {
 			}
 		}
 	}
-	
-	
-	
-	
+
+	public void sendAllNPC (boolean show){
+		for (Player p: Bukkit.getOnlinePlayers())
+			if (npc_enabled&&npc&&p.isOnline()) sendNPC(p, show);
+	}
+
+
+
+
 	public void sendFakePlayers (Player p, boolean show){
 		if (fakeplayers.size()>0)
 			for (String fakeplayer : fakeplayers){
@@ -117,7 +122,7 @@ public class FakePlayersOnline extends JavaPlugin {
 				((CraftPlayer)p).getHandle().netServerHandler.sendPacket(new Packet201PlayerInfo(fp,show,10));
 			}
 	}
-	
+
 	public void sendNPC (Player p, boolean show){
 		if (npclist.size()>0)
 			for (String fakenpc : npclist){
@@ -126,7 +131,7 @@ public class FakePlayersOnline extends JavaPlugin {
 				((CraftPlayer)p).getHandle().netServerHandler.sendPacket(new Packet201PlayerInfo(fp,show,10));
 			}
 	}
-	
+
 	public void LoadCfg(){
 		version_check = getConfig().getBoolean("general.check-updates", true);;
 		language = getConfig().getString("general.language", "english");
@@ -138,9 +143,9 @@ public class FakePlayersOnline extends JavaPlugin {
 		fakeplayers = getConfig().getStringList("fake-players.list");
 		npc = getConfig().getBoolean("citizens.enabled", true);
 		npc_px = getConfig().getString("citizens.prefix", "&3");
-		
+
 	}
-	
+
 	public void SaveCfg(){
 		getConfig().set("general.check-updates", version_check);;
 		getConfig().set("general.language", language);
@@ -154,7 +159,7 @@ public class FakePlayersOnline extends JavaPlugin {
 		saveConfig();
 	}
 
-	
+
 	public boolean isCitzensInstalled(){
 		PluginManager pm = getServer().getPluginManager();
 		Plugin test = pm.getPlugin("Citizens");
@@ -163,24 +168,27 @@ public class FakePlayersOnline extends JavaPlugin {
 
 	public void fillNPCList(){
 		npclist.clear();
-		if (npc_enabled&&npc)
+		if (npc_enabled&&npc){
+			sendAllNPC(false);
 			for (HumanNPC hpc: CitizensManager.getList().values())	
 				npclist.add(hpc.getName());
+			sendAllNPC(true);
+		}
 	}
-	
+
 	public void restartTicks(){
-		
+
 		if (tid_fake_active) getServer().getScheduler().cancelTask(tid_fake);
 		if (tid_npc_active) getServer().getScheduler().cancelTask(tid_npc);
-	
-		
+
+
 		tid_fake_active = true;
 		tid_fake = getServer().getScheduler().scheduleAsyncRepeatingTask(this, new Runnable(){
 			public void run (){
 				sendAllFakes(true);
 			}
 		}, 1, fakeupdatetime*20);  
-		
+
 		if (npc_enabled&&npc){
 			tid_npc_active = true;
 			tid_npc= getServer().getScheduler().scheduleAsyncRepeatingTask(this, new Runnable(){
@@ -190,7 +198,7 @@ public class FakePlayersOnline extends JavaPlugin {
 			}, 20, npclistupdatetime*20);		
 		}
 	}
-	
+
 
 
 }

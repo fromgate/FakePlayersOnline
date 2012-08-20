@@ -62,7 +62,7 @@ public class FPOCmd implements CommandExecutor  {
 		} else if (cmd.equalsIgnoreCase("list")){
 			if (plg.fakeplayers.size()>0){
 				String str ="";
-				for (int i = plg.fakeplayers.size(); i<plg.fakeplayers.size();i++)
+				for (int i = 0; i<plg.fakeplayers.size();i++)
 					str = str +", "+plg.fakeplayers.get(i);
 				str = str.replaceFirst(", ", "");
 				u.PrintMSG(p, "msg_fplist",str);
