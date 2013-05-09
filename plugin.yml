@@ -1,8 +1,8 @@
 name: FakePlayersOnline
 main: fromgate.fakeplayersonline.FakePlayersOnline
-version: 0.0.1
+version: 0.1.0
 author: fromgate
-softdepend: [Citizens]
+softdepend: [Citizens,ProtocolLib]
 commands:
    fpo:
       description: FakePlayersOnline commands
