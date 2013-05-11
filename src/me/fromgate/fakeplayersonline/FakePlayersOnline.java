@@ -49,7 +49,7 @@ public class FakePlayersOnline extends JavaPlugin {
 	FPOUtil u;
 	FPOCmd cmd;
 	Logger log = Logger.getLogger("Minecraft");
-	
+
 	BukkitTask tid_npc;
 	boolean tid_npc_active = false;
 
@@ -61,11 +61,13 @@ public class FakePlayersOnline extends JavaPlugin {
 
 	boolean fakemaxplayersenable=true;
 	int fakemaxplayers = 50;
-	
+
 	boolean listcmdoverride = true;
 	String listcmd = "list,players,online,playerlist";
 
 	List<String> showlist= new ArrayList<String>();
+
+	boolean real = true;
 
 	boolean fake = true;
 	String fake_px = "&e";
@@ -140,12 +142,12 @@ public class FakePlayersOnline extends JavaPlugin {
 		language = getConfig().getString("general.language", "english");
 		language_save = getConfig().getBoolean("general.language-save", false);
 		npclistupdatetime = getConfig().getInt("general.npc-list-update-time",60);
-		//fakeupdatetime = getConfig().getInt("general.send-fakes-interval",5);
 		fake = getConfig().getBoolean("fake-players.enabled", true);
 		fake_px = getConfig().getString("fake-players.prefix", "&e");
 		fakeplayers = getConfig().getStringList("fake-players.list");
 		npc = getConfig().getBoolean("citizens.enabled", true);
 		npc_px = getConfig().getString("citizens.prefix", "&3");
+		real = getConfig().getBoolean("real-players.enable-override", true);
 		real_px = getConfig().getString("real-players.prefix", "&6");
 		real_px_admin = getConfig().getString("real-players.prefix-red", "&4");
 		fakemaxplayersenable = getConfig().getBoolean("fake-max-players.enabled", true);
@@ -156,15 +158,15 @@ public class FakePlayersOnline extends JavaPlugin {
 		fixedseverlist = getConfig().getBoolean("fake-server-list.constant-online-count.enabled", false);
 		fixedonline = getConfig().getInt("fake-server-list.constant-online-count.players-online", 10);
 
-		
+
 	}
 
 	public void SaveCfg(){
 		getConfig().set("general.check-updates", version_check);;
 		getConfig().set("general.language", language);
 		getConfig().set("general.language-save", language_save);
-		//getConfig().set("general.send-fakes-interval",fakeupdatetime);
 		getConfig().set("general.npc-list-update-time",npclistupdatetime);
+		getConfig().set("real-players.enable-override", real);
 		getConfig().set("real-players.prefix", real_px);
 		getConfig().set("real-players.prefix-red", real_px_admin );
 		getConfig().set("fake-players.enabled", fake);
@@ -176,7 +178,7 @@ public class FakePlayersOnline extends JavaPlugin {
 		getConfig().set("fake-max-players.fake-max-online", fakemaxplayers);
 		getConfig().set("fake-server-list.enabled", fake_serverlist);
 		getConfig().set("fake-server-list.motd.enabled", fakemotd);
-		getConfig().getString("fake-server-list.motd.value", motd);
+		getConfig().set("fake-server-list.motd.value", motd);
 		getConfig().set("fake-server-list.constant-online-count.enabled", fixedseverlist);
 		getConfig().set("fake-server-list.constant-online-count.players-online", fixedonline);
 		saveConfig();
@@ -237,11 +239,14 @@ public class FakePlayersOnline extends JavaPlugin {
 		showlist.clear();
 		for (Player p : Bukkit.getServer().getOnlinePlayers()){
 			if (!p.isOnline()) continue;
-			String ppn = p.getName();
-			String px = real_px;
-			if (p.hasPermission("fakeplayers.red")) px = real_px_admin;
-			ppn = ChatColor.translateAlternateColorCodes('&', px+ppn);
-			if (ppn.length()>16) ppn = ppn.substring(0, 15);
+			String ppn = p.getPlayerListName();
+			if (real){
+				ppn = p.getName();
+				String px = real_px;
+				if (p.hasPermission("fakeplayers.red")) px = real_px_admin;
+				ppn = ChatColor.translateAlternateColorCodes('&', px+ppn);
+				if (ppn.length()>16) ppn = ppn.substring(0, 15);
+			}
 			p.setPlayerListName(ppn);
 			showlist.add(ppn);
 			for (Player pp : getServer().getOnlinePlayers()){

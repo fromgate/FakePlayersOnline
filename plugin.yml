@@ -1,5 +1,5 @@
 name: FakePlayersOnline
-main: fromgate.fakeplayersonline.FakePlayersOnline
+main: me.fromgate.fakeplayersonline.FakePlayersOnline
 version: 0.1.0
 author: fromgate
 softdepend: [Citizens,ProtocolLib]

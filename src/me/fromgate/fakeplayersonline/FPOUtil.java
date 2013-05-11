@@ -51,14 +51,15 @@ public class FPOUtil extends FGUtilCore implements Listener{
 		addCmd("add", "config", "hlp_helpadd", "/fpo add <fakeplayer>");
 		addCmd("del", "config", "hlp_helpdel", "/fpo del <fakeplayer>");
 		addCmd("list", "config", "hlp_helplist", "/fpo list");
-		addCmd("real", "config", "hlp_helpreal", "/fpo real");
 		addCmd("fake", "config", "hlp_helpfake", "/fpo fake");
+		addCmd("real", "config", "hlp_helpreal", "/fpo real");
 		addCmd("npc", "config", "hlp_helpnpc", "/fpo npc");
 		addCmd("slots", "config", "hlp_maxplayers", "/fpo slots [fake reserved slots]");
 		addCmd("listcmd", "config", "hlp_fakelistcmd", "/fpo listcmd [command1,command2..]");
 		addCmd("serverlist", "config", "hlp_serverlist", "/fpo serverlist");
 		addCmd("online", "config", "hlp_online", "/fpo online [fake players online]");
 		addCmd("motd", "config", "hlp_motd", "/fpo motd");
+		addCmd("reload", "config", "hlp_reload", "/fpo reload");
 		addCmd("cfg", "config", "hlp_helpcfg", "/fpo cfg");
 	}
 
@@ -99,6 +100,11 @@ public class FPOUtil extends FGUtilCore implements Listener{
 		addMSG ("msg_maxplayers", "Reserved slot faking is");
 		addMSG ("msg_maxplayersslot", "Reserved slot counter is set to %1%");
 		addMSG ("hlp_maxplayers", "%1% - toggle faking the reserved slots counter or set it's value");
+		addMSG ("hlp_reload", "%1% - reload config file");
+		addMSG ("msg_reload", "Configuration reloaded. Some changes may require a player relogin or restarting of the server");
+		
+		
+		
 	}
 
 	protected void showCfg(Player p){

@@ -81,6 +81,10 @@ public class FPOCmd implements CommandExecutor {
 				str = str.replaceFirst(", ", "");
 				u.printMSG(p, "msg_fplist",str);
 			} else u.printMSG(p, "msg_fplistempty");
+	    } else if (cmd.equalsIgnoreCase("real")) {
+	        plg.real = (!plg.real);
+	        plg.refreshOnlineList();
+	        u.printEnDis(p, "msg_realstatus", plg.real);
 		} else if (cmd.equalsIgnoreCase("fake")){
 			plg.fake = !plg.fake;
 			u.printEnDis(p, "msg_fakestatus", plg.fake);
@@ -92,10 +96,17 @@ public class FPOCmd implements CommandExecutor {
 				plg.restartTicks();
 				plg.refreshOnlineList();
 			} else u.printMSG(p, "msg_citizenserror",'c');
+		} else if (cmd.equalsIgnoreCase("reload")){
+			plg.reloadConfig();
+			plg.LoadCfg();
+			plg.restartTicks();
+			plg.refreshOnlineList();
+			u.printMSG(p, "msg_reload");
 		} else if (cmd.equalsIgnoreCase("cfg")){
 			u.showCfg(p);
 		} else return false;
-		plg.SaveCfg();		
+		plg.SaveCfg();	
+		
 		return true;
 	}
 
