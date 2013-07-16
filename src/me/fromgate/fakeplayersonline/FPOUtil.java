@@ -23,12 +23,14 @@
 package me.fromgate.fakeplayersonline;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 
@@ -46,21 +48,21 @@ public class FPOUtil extends FGUtilCore implements Listener{
 	}
 
 	private void initCmd(){
-		//addCmd("test", "config", "hlp_testcmd", "/fpo test");
-		addCmd("help", "config", "hlp_thishelp", "/fpo help");
-		addCmd("add", "config", "hlp_helpadd", "/fpo add <fakeplayer>");
-		addCmd("del", "config", "hlp_helpdel", "/fpo del <fakeplayer>");
-		addCmd("list", "config", "hlp_helplist", "/fpo list");
-		addCmd("fake", "config", "hlp_helpfake", "/fpo fake");
-		addCmd("real", "config", "hlp_helpreal", "/fpo real");
-		addCmd("npc", "config", "hlp_helpnpc", "/fpo npc");
-		addCmd("slots", "config", "hlp_maxplayers", "/fpo slots [fake reserved slots]");
-		addCmd("listcmd", "config", "hlp_fakelistcmd", "/fpo listcmd [command1,command2..]");
-		addCmd("serverlist", "config", "hlp_serverlist", "/fpo serverlist");
-		addCmd("online", "config", "hlp_online", "/fpo online [fake players online]");
-		addCmd("motd", "config", "hlp_motd", "/fpo motd");
-		addCmd("reload", "config", "hlp_reload", "/fpo reload");
-		addCmd("cfg", "config", "hlp_helpcfg", "/fpo cfg");
+		addCmd("help", "config", "hlp_thishelp", "/fpo help",true);
+		addCmd("lock", "config", "hlp_helplock", "/fpo lock",true);
+		addCmd("add", "config", "hlp_helpadd", "/fpo add <fakeplayer>",true);
+		addCmd("del", "config", "hlp_helpdel", "/fpo del <fakeplayer>",true);
+		addCmd("list", "config", "hlp_helplist", "/fpo list",true);
+		addCmd("fake", "config", "hlp_helpfake", "/fpo fake",true);
+		addCmd("real", "config", "hlp_helpreal", "/fpo real",true);
+		addCmd("npc", "config", "hlp_helpnpc", "/fpo npc",true);
+		addCmd("slots", "config", "hlp_maxplayers", "/fpo slots [fake reserved slots]",true);
+		addCmd("listcmd", "config", "hlp_fakelistcmd", "/fpo listcmd [command1,command2..]",true);
+		addCmd("serverlist", "config", "hlp_serverlist", "/fpo serverlist",true);
+		addCmd("online", "config", "hlp_online", "/fpo online [fake players online]",true);
+		addCmd("motd", "config", "hlp_motd", "/fpo motd",true);
+		addCmd("reload", "config", "hlp_reload", "/fpo reload",true);
+		addCmd("cfg", "config", "hlp_helpcfg", "/fpo cfg",true);
 	}
 
 	private void initMSG(){
@@ -102,12 +104,15 @@ public class FPOUtil extends FGUtilCore implements Listener{
 		addMSG ("hlp_maxplayers", "%1% - toggle faking the reserved slots counter or set it's value");
 		addMSG ("hlp_reload", "%1% - reload config file");
 		addMSG ("msg_reload", "Configuration reloaded. Some changes may require a player relogin or restarting of the server");
-		
-		
-		
+		addMSG ("hlp_helplock", "%1% - lock server with fake \"server is full\" message");
+		addMSG ("msg_serverwillbelocked", "Server will be locked and you will be kicked at %1% seconds!");
+		addMSG ("msg_serverislocked", "Sorry, but server is locked now. Come back soon...");
+		addMSG ("msg_serverisfull", "Server is full.");
+		addMSG ("msg_locktounlock", "Server is locked. Type /fpo lock again to unlock it.");
+		addMSG ("msg_serverunlocked", "Server is unlocked!");
 	}
 
-	protected void showCfg(Player p){
+	protected void showCfg(CommandSender p){
 		printMsg(p, "&6&l"+des.getName()+" v"+des.getVersion()+" &r&6| "+getMSG("msg_configuration",'6'));
 		printMSG(p, "msg_cfgfake",EnDis(plg.fake),plg.fakeplayers.size());
 		printMSG(p, "msg_cfgnpc",EnDis(plg.npc),plg.npclist.size());
@@ -153,6 +158,14 @@ public class FPOUtil extends FGUtilCore implements Listener{
 				event.setCancelled(true);
 				break;
 			}
+	}
+	
+	@EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)
+	public void onServerLock (PlayerLoginEvent event){
+		if (!plg.serverlocked) return;
+		if (event.getPlayer().hasPermission("fakeplayers.unlock")) return;
+		event.setKickMessage(getMSG("msg_serverisfull",'6'));
+		event.setResult(Result.KICK_FULL);
 	}
 	
 }

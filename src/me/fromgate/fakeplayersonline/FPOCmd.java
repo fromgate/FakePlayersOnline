@@ -25,7 +25,6 @@ package me.fromgate.fakeplayersonline;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 public class FPOCmd implements CommandExecutor {
 	FakePlayersOnline plg;
@@ -38,9 +37,7 @@ public class FPOCmd implements CommandExecutor {
 
 
 	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String cmdLabel, String[] args) {
-		if (sender instanceof Player){
-			Player p = (Player) sender;
+	public boolean onCommand(CommandSender p, Command cmd, String cmdLabel, String[] args) {
 			if ((args.length>0)&&(u.checkCmdPerm(p, args[0]))){
 				if (args.length==1) return ExecuteCmd (p, args[0]);
 				else if (args.length==2) return ExecuteCmd (p, args[0],args[1]);
@@ -51,13 +48,20 @@ public class FPOCmd implements CommandExecutor {
 					return ExecuteCmd (p, args[0],arg);
 				}
 			} else u.printMSG(p, "cmd_cmdpermerr",'c');
-		}
 		return false;
 	}
 
-	public boolean ExecuteCmd (Player p, String cmd){
+	public boolean ExecuteCmd (CommandSender p, String cmd){
 		if (cmd.equalsIgnoreCase("help")){
 			u.PrintHlpList(p, 1, 12);
+		} else if (cmd.equalsIgnoreCase("lock")){
+			plg.serverlocked = !plg.serverlocked;
+			if (plg.serverlocked) {
+				plg.lockServerKick();
+				u.printMSG(p, "msg_locktounlock");
+			} else u.printMSG(p, "msg_serverunlocked");
+			
+			
 		} else if (cmd.equalsIgnoreCase("slots")){	
 			plg.fakemaxplayersenable = !plg.fakemaxplayersenable;
 			u.printEnDis(p, "msg_maxplayers",plg.fakemaxplayersenable);
@@ -110,7 +114,7 @@ public class FPOCmd implements CommandExecutor {
 		return true;
 	}
 
-	public boolean ExecuteCmd (Player p, String cmd, String arg){
+	public boolean ExecuteCmd (CommandSender p, String cmd, String arg){
 		if (cmd.equalsIgnoreCase("add")){
 			plg.fakeplayers.add(arg);
 			u.printMSG(p, "msg_fakeadded", arg);

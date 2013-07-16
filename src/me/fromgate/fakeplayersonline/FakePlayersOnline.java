@@ -26,9 +26,9 @@ import java.io.IOException;
 
 /* 
  * TODO
- * - Обработка событий.
- * - Решение бага с выходящими игроками.
- * - Возможность хоть какой-то сортировки
+ * - /fpo lock
+ * 
+ * fakeplayers.unlock - возможность зайти на сервер
  * 
  */
 import java.util.ArrayList;
@@ -54,6 +54,10 @@ public class FakePlayersOnline extends JavaPlugin {
 	boolean tid_npc_active = false;
 
 	// Конфигурация
+	boolean serverlocked = false;
+	boolean serverunlockreload = false;
+	int kick_delay = 10;
+	
 	boolean version_check = true;
 	String language = "english";
 	boolean language_save = false;
@@ -95,6 +99,7 @@ public class FakePlayersOnline extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		LoadCfg();
+		if (serverlocked) serverlocked = !serverunlockreload;
 		SaveCfg();
 		u = new FPOUtil (this, version_check, language_save, language, "fakeplayers", "FakePlayersOnline","fpo","&3[FPO]&f");
 		cmd = new FPOCmd (this);
@@ -150,15 +155,16 @@ public class FakePlayersOnline extends JavaPlugin {
 		real = getConfig().getBoolean("real-players.enable-override", true);
 		real_px = getConfig().getString("real-players.prefix", "&6");
 		real_px_admin = getConfig().getString("real-players.prefix-red", "&4");
-		fakemaxplayersenable = getConfig().getBoolean("fake-max-players.enabled", true);
+		fakemaxplayersenable = getConfig().getBoolean("fake-max-players.enabled", false);
 		fakemaxplayers = getConfig().getInt("fake-max-players.fake-max-online", getServer().getMaxPlayers());
 		fake_serverlist = getConfig().getBoolean("fake-server-list.enabled", true);
 		fakemotd = getConfig().getBoolean("fake-server-list.motd.enabled", true);
 		motd = getConfig().getString("fake-server-list.motd.value", "&4FakePlayersOnline &6installed!");
 		fixedseverlist = getConfig().getBoolean("fake-server-list.constant-online-count.enabled", false);
 		fixedonline = getConfig().getInt("fake-server-list.constant-online-count.players-online", 10);
-
-
+		serverlocked = getConfig().getBoolean("server-lock.is-locked",false);
+		serverunlockreload = getConfig().getBoolean("server-lock.unlock-after-reload",true);
+		kick_delay = getConfig().getInt("server-lock.kick-delay",10);
 	}
 
 	public void SaveCfg(){
@@ -181,6 +187,9 @@ public class FakePlayersOnline extends JavaPlugin {
 		getConfig().set("fake-server-list.motd.value", motd);
 		getConfig().set("fake-server-list.constant-online-count.enabled", fixedseverlist);
 		getConfig().set("fake-server-list.constant-online-count.players-online", fixedonline);
+		getConfig().set("server-lock.is-locked",serverlocked);
+		getConfig().set("server-lock.unlock-after-reload",serverunlockreload);
+		getConfig().set("server-lock.kick-delay",kick_delay);
 		saveConfig();
 	}
 
@@ -283,6 +292,7 @@ public class FakePlayersOnline extends JavaPlugin {
 	}
 
 	public int getPlayersOnline(){
+		if (serverlocked) return getMaxPlayers();
 		if (fake_serverlist&&fixedseverlist) return fixedonline;
 		return Math.max(showlist.size(), getServer().getOnlinePlayers().length+fakeplayers.size()+npclist.size());
 	}
@@ -297,5 +307,19 @@ public class FakePlayersOnline extends JavaPlugin {
 		Plugin test = pm.getPlugin("ProtocolLib");
 		return (test != null);
 	}
+	
+	public void lockServerKick(){
+		Bukkit.getServer().broadcastMessage(u.getMSG("msg_serverwillbelocked",'e','6',kick_delay));
+		getServer().getScheduler().runTaskLaterAsynchronously(this, new Runnable(){
+			@Override
+			public void run() {
+				for (Player p : Bukkit.getOnlinePlayers())
+					if (!p.hasPermission("fakeplayers.unlock")) 
+						p.kickPlayer(u.getMSGnc("msg_serverislocked",'6','6'));
+			}
+		}, kick_delay*20);
+	}
+	
+	
 
 }

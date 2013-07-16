@@ -31,7 +31,7 @@ import org.bukkit.entity.Player;
 public class FPOcbo {
 	private static String version = "";
 	private static String [] tested_versions = {"v1_4_5", "v1_4_6", "v1_4_R1",
-		                                        "v1_5_R1","v1_5_R2","v1_5_R3"};
+		                                        "v1_5_R1","v1_5_R2","v1_5_R3","v1_6_R1"};
 	private static String cboPrefix = "org.bukkit.craftbukkit.";
 	private static String nmsPrefix = "net.minecraft.server.";
 	private static boolean block_executing = false;

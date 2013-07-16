@@ -36,6 +36,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -130,6 +131,10 @@ public abstract class FGUtilCore {
 		addMSG ("lst_title", "String list:");
 		addMSG ("lst_footer", "Page: [%1% / %2%]");
 		addMSG ("lst_listisempty", "List is empty");
+		addMSG ("msg_config", "Configuration");
+		addMSG ("cfgmsg_general.check-updates", "Check updates: %1%");
+		addMSG ("cfgmsg_general.language", "Language: %1%");
+		addMSG ("cfgmsg_general.language-save", "Save translation file: %1%");
 	}
 
 
@@ -239,6 +244,10 @@ public abstract class FGUtilCore {
 
 	public void addCmd (String cmd, String perm, String desc_id, String desc_key, char color){
 		addCmd (cmd, perm,desc_id,desc_key,this.c1, color,false);
+	}
+	
+	public void addCmd (String cmd, String perm, String desc_id, String desc_key, boolean console){
+		addCmd (cmd, perm,desc_id,desc_key,this.c1, this.c2,console);
 	}
 
 	public void addCmd (String cmd, String perm, String desc_id, String desc_key, char color,boolean console){
@@ -390,6 +399,17 @@ public abstract class FGUtilCore {
 		}
 		return false;
 	}
+
+	/* 
+	 * Функция проверяет входят ли все числа массива (int)
+	 * в список чисел представленных в виде строки вида n1,n2,n3,...nN
+	 */
+	public boolean isAllIdInList(int[] ids, String str) {
+		for (int id : ids)
+			if (!isIdInList(id, str)) return false;
+		return true;
+	}
+
 
 	/* 
 	 * Функция проверяет входит ли слово (String) в список слов
@@ -683,8 +703,14 @@ public abstract class FGUtilCore {
 			if (c2 != 'z') clr2 = "&"+c2;
 			str = clr1 + msg.get(id);
 			if (keys.length>0)
-				for (int i =0; i<keys.length;i++)
-					str.replace("%"+Integer.toString(i+1)+"%", clr2+keys[i].toString()+clr1);
+				for (int i =0; i<keys.length;i++){
+					String key = keys[i].toString();
+					if (keys[i] instanceof Location){
+						Location loc = (Location) keys[i];
+						key = loc.getWorld().getName()+"["+loc.getBlockX()+", "+loc.getBlockY()+", "+loc.getBlockZ()+"]";
+					}
+					str.replace("%"+Integer.toString(i+1)+"%", clr2+key+clr1);
+				}
 		}
 		return ChatColor.translateAlternateColorCodes('&', str);
 	}
@@ -947,6 +973,10 @@ public abstract class FGUtilCore {
 		return (random.nextInt(100)<chance);
 	}
 
+	public int getRandomInt(int maxvalue){
+		return random.nextInt(maxvalue);
+	}
+
 
 	/*
 	 * Проверка формата строкового представления целых чисел 
@@ -983,6 +1013,24 @@ public abstract class FGUtilCore {
 		for (String s : str)
 			if (!s.matches("[1-9]+[0-9]*")) return false;
 		return true;
+	}
+	
+	public void printConfig(Player p, int page, int lpp, boolean section, boolean usetranslation){
+		List<String> cfgprn = new ArrayList<String>();
+		if (!plg.getConfig().getKeys(true).isEmpty()) 
+			for (String k : plg.getConfig().getKeys(true)){
+					Object objvalue = plg.getConfig().get(k);
+					String value = objvalue.toString();
+					String str = k;
+					if ((objvalue instanceof Boolean)&&(usetranslation)) value = EnDis((Boolean)objvalue);
+					if (objvalue instanceof MemorySection){
+						if (!section) continue;
+					} else str = k +" : "+value;
+					if (usetranslation) str = getMSG ("cfgmsg_"+k,value); 
+					cfgprn.add(str);
+				}
+		String title = "&6&l"+this.version_name+" v"+des.getVersion()+" &r&6| "+getMSG("msg_config",'6');
+		printPage (p, cfgprn, page, title,"",false);
 	}
 
 
