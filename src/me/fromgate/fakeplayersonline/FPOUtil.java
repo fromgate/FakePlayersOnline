@@ -39,7 +39,8 @@ public class FPOUtil extends FGUtilCore implements Listener{
 
 	public FPOUtil(FakePlayersOnline plg, boolean vcheck, boolean savelng, String lng,
 			String devbukkitname, String version_name, String plgcmd, String px) {
-		super(plg, vcheck, savelng, lng, devbukkitname, version_name, plgcmd, px);
+		super(plg, savelng, lng, plgcmd, devbukkitname);
+		this.initUpdateChecker(version_name, "43537", devbukkitname, vcheck);
 		this.plg = plg;
 		initMSG();
 		initCmd();
@@ -51,7 +52,9 @@ public class FPOUtil extends FGUtilCore implements Listener{
 		addCmd("help", "config", "hlp_thishelp", "/fpo help",true);
 		addCmd("lock", "config", "hlp_helplock", "/fpo lock",true);
 		addCmd("add", "config", "hlp_helpadd", "/fpo add <fakeplayer>",true);
+		addCmd("join", "config", "hlp_helpjoin", "/fpo join <fakeplayer>",true);
 		addCmd("del", "config", "hlp_helpdel", "/fpo del <fakeplayer>",true);
+		addCmd("leave", "config", "hlp_helpleave", "/fpo exit <fakeplayer>",true);
 		addCmd("list", "config", "hlp_helplist", "/fpo list",true);
 		addCmd("fake", "config", "hlp_helpfake", "/fpo fake",true);
 		addCmd("real", "config", "hlp_helpreal", "/fpo real",true);
@@ -75,7 +78,9 @@ public class FPOUtil extends FGUtilCore implements Listener{
 		addMSG ("msg_fakeremoved", "Fake player removed: %1%");
 		addMSG ("msg_fakeunknown", "Fake player not found: %1%");
 		addMSG ("hlp_helpadd", "%1% - add fake player to the list");
+		addMSG ("hlp_helpjoin", "%1% - add fake player and broadcast join-message");
 		addMSG ("hlp_helpdel", "%1% - remove fake player from the list");
+		addMSG ("hlp_helpleave", "%1% - remove fake player and broadcast leave-message");
 		addMSG ("hlp_helplist", "%1% - display current fake player list");
 		addMSG ("hlp_helpreal", "%1% - toggle overriding normal players in list");
 		addMSG ("hlp_helpfake", "%1% - toggle displaying fakes in player list");
@@ -114,22 +119,22 @@ public class FPOUtil extends FGUtilCore implements Listener{
 
 	protected void showCfg(CommandSender p){
 		printMsg(p, "&6&l"+des.getName()+" v"+des.getVersion()+" &r&6| "+getMSG("msg_configuration",'6'));
-		printMSG(p, "msg_cfgfake",EnDis(plg.fake),plg.fakeplayers.size());
-		printMSG(p, "msg_cfgnpc",EnDis(plg.npc),plg.npclist.size());
-		printEnDis(p, "msg_fakelistcmdoverride",plg.listcmdoverride);
-		printMSG(p, "msg_listcmdalias", plg.listcmd);
-		printEnDis(p, "msg_fakeserverlist",plg.fake_serverlist);
-		printEnDis(p, "msg_maxplayers",plg.fakemaxplayersenable);
-		printMSG(p, "msg_maxplayersslot", plg.fakemaxplayers);
-		printEnDis(p, "msg_fixedseverlist",plg.fixedseverlist);
-		printMSG(p, "msg_fixedonline", plg.fixedonline);
-		printEnDis(p, "msg_fakemotd",plg.fakemotd);
+		printMSG(p, "msg_cfgfake",EnDis(plg.fake),plg.fakePlayers.size());
+		printMSG(p, "msg_cfgnpc",EnDis(plg.npc),plg.npcList.size());
+		printEnDis(p, "msg_fakelistcmdoverride",plg.listCommandOverride);
+		printMSG(p, "msg_listcmdalias", plg.listCommands);
+		printEnDis(p, "msg_fakeserverlist",plg.enableFakeServerList);
+		printEnDis(p, "msg_maxplayers",plg.enableFakeMaxPlayers);
+		printMSG(p, "msg_maxplayersslot", plg.fakeMaxPlayers);
+		printEnDis(p, "msg_fixedseverlist",plg.enableFixedCounter);
+		printMSG(p, "msg_fixedonline", plg.fixedCounter);
+		printEnDis(p, "msg_fakemotd",plg.fakeMotd);
 		printMSG(p, "msg_motd", plg.motd);
 	}
 	
 	@EventHandler(priority=EventPriority.NORMAL)
 	public void onJoin (PlayerJoinEvent event){
-		plg.u.UpdateMsg(event.getPlayer());
+		plg.u.updateMsg(event.getPlayer());
 		plg.refreshOnlineList();
 	}
 	
@@ -145,13 +150,13 @@ public class FPOUtil extends FGUtilCore implements Listener{
 	
 	@EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)
 	public void onListCommand (PlayerCommandPreprocessEvent event){
-		if (!plg.listcmdoverride) return;
-		String [] ln = plg.listcmd.replace(" ", "").split(",");
+		if (!plg.listCommandOverride) return;
+		String [] ln = plg.listCommands.replace(" ", "").split(",");
 		for (String cmd : ln)
 			if (event.getMessage().startsWith("/"+cmd)){
 				String str = "";
-				for (int i = 0; i<plg.showlist.size();i++)
-					str= str+", "+plg.showlist.get(i);
+				for (int i = 0; i<plg.showList.size();i++)
+					str= str+", "+plg.showList.get(i);
 				str=str.replaceFirst(", ","");
 				printMSG(event.getPlayer(),"msg_fakelistcmd",plg.getPlayersOnline(),plg.getMaxPlayers());
 				printMsg(event.getPlayer(),str);
@@ -162,7 +167,7 @@ public class FPOUtil extends FGUtilCore implements Listener{
 	
 	@EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)
 	public void onServerLock (PlayerLoginEvent event){
-		if (!plg.serverlocked) return;
+		if (!plg.serverLocked) return;
 		if (event.getPlayer().hasPermission("fakeplayers.unlock")) return;
 		event.setKickMessage(getMSG("msg_serverisfull",'6'));
 		event.setResult(Result.KICK_FULL);

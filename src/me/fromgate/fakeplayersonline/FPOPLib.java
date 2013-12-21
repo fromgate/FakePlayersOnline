@@ -1,38 +1,58 @@
+/*
+ * FakePlayersOnline, Minecraft bukkit plugin
+ * (c)2012, 2013, fromgate, fromgate@gmail.com
+ * http://dev.bukkit.org/server-mods/fakeplayers/
+ *
+ * This file is part of FakePlayersOnline.
+ *
+ * FakePlayersOnline is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * FakePlayersOnline is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with FakePlayersOnline. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package me.fromgate.fakeplayersonline;
 
-import com.comphenix.protocol.Packets;
+import java.util.ArrayList;
+import java.util.List;
+import org.bukkit.ChatColor;
+import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.ConnectionSide;
-import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.injector.GamePhase;
-import com.comphenix.protocol.reflect.StructureModifier;
+import com.comphenix.protocol.wrappers.WrappedGameProfile;
 
 public class FPOPLib {
-	public static void initPacketListener(final FakePlayersOnline plg){
-		ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(plg, ConnectionSide.SERVER_SIDE, ListenerPriority.HIGHEST, GamePhase.LOGIN, Packets.Server.KICK_DISCONNECT) {
-			@Override
-			public void onPacketSending(PacketEvent event) {
-				try {
-					final StructureModifier<String> packetStr = event.getPacket().getSpecificModifier(String.class);
-					String [] ln = packetStr.read(0).split("\u0000");
-					if (ln.length!=6) return;
-					/*
-					            //&1#73#1.6.1#fromgate's test server#0#20/*
-					            //////////////////////////////////////////
-					  	        0 &1
-								1 61 - версия? // 73 для 1.6.1 - версия протокола	 
-								2 1.5.2 - версия игры 
-								3 fromgate's test server - motd
-								4 0 - текущее число игроков
-								5 20 - максимальное число
-					 */
-					packetStr.write(0, ln[0]+"\u0000"+ln[1]+"\u0000"+ln[2]+"\u0000"+plg.getMotd()+"\u0000"+plg.getPlayersOnline()+"\u0000"+plg.getMaxPlayers());
-				}catch (Exception e){
-				}
-			}
-		});
-	}
 
+    static FakePlayersOnline plg(){
+        return FakePlayersOnline.instance;
+    }
+
+    public static void initPacketListener(){
+        ProtocolLibrary.getProtocolManager().addPacketListener(
+                new PacketAdapter(FakePlayersOnline.instance, PacketType.Status.Server.OUT_SERVER_INFO) {
+                    @Override
+                    public void onPacketSending(PacketEvent event) {
+                        event.getPacket().getServerPings().getValues().get(0).setPlayersOnline(plg().getPlayersOnline());
+                        event.getPacket().getServerPings().getValues().get(0).setPlayersMaximum(plg().getMaxPlayers());
+                        event.getPacket().getServerPings().getValues().get(0).setMotD(plg().getMotd());
+                        if (plg().enableFakePlayersInServerList){
+                            List<WrappedGameProfile> players = new ArrayList<WrappedGameProfile>();
+                            for (String player : plg().showList){
+                                players.add(new WrappedGameProfile("id"+String.valueOf(players.size()+1), ChatColor.translateAlternateColorCodes('&', player)));
+                            }
+                            if (!players.isEmpty()) event.getPacket().getServerPings().getValues().get(0).setPlayers(players);
+                        }
+                    }
+                });
+    }
 }
