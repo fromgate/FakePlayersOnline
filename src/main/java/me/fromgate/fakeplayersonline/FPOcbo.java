@@ -24,14 +24,16 @@
 package me.fromgate.fakeplayersonline;
 
 //import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 public class FPOcbo {
     private static String version = "";
-    private static String [] tested_versions = {"v1_8_R1","v1_8_R2"};
+    private static String[] tested_versions = {"v1_11_R1"};
     private static String cboPrefix = "org.bukkit.craftbukkit.";
     private static String nmsPrefix = "net.minecraft.server.";
     private static boolean block_executing = false;
@@ -47,18 +49,19 @@ public class FPOcbo {
     //private static Method sendPacket;
     //private static Constructor<?> newPacket;
 
-    public static void init(){
-        try{
+    public static void init() {
+        try {
             Object s = Bukkit.getServer();
             Method m = s.getClass().getMethod("getHandle");
             Object cs = m.invoke(s);
             String className = cs.getClass().getName();
-            String [] v = className.split("\\.");
-            if (v.length==5){
+            String[] v = className.split("\\.");
+            if (v.length == 5) {
                 version = v[3];
-                cboPrefix = "org.bukkit.craftbukkit."+version+".";
-                nmsPrefix = "net.minecraft.server."+version+".";;
-            } 
+                cboPrefix = "org.bukkit.craftbukkit." + version + ".";
+                nmsPrefix = "net.minecraft.server." + version + ".";
+                ;
+            }
             EntityPlayer = nmsClass("EntityPlayer");
             //String playerConnectionClass = "PlayerConnection";
             //String playerConnectionField = "playerConnection";
@@ -75,51 +78,51 @@ public class FPOcbo {
             //newPacket = Packet201PlayerInfo.getConstructor(String.class, boolean.class, int.class);
 
             if (!isTestedVersion()) {
-                FakePlayersOnline.instance.u.log("This version of FakePlayersOnline was not tested with CraftBukkit "+Bukkit.getVersion());
+                FakePlayersOnline.instance.u.log("This version of FakePlayersOnline was not tested with CraftBukkit " + Bukkit.getVersion());
                 FakePlayersOnline.instance.u.log("You can check updates at http://dev.bukkit.org/server-mods/fakeplayers/");
                 //FakePlayersOnline.instance.u.log("or you can try to use ProtocolLib to override compatibility issues");
             }
 
-        } catch (Exception e){
+        } catch (Exception e) {
             block_executing = true;
-            FakePlayersOnline.instance.u.log("Internal library of FakePlayersOnline is not compatible with CraftBukkit "+Bukkit.getVersion());
+            FakePlayersOnline.instance.u.log("Internal library of FakePlayersOnline is not compatible with CraftBukkit " + Bukkit.getVersion());
             FakePlayersOnline.instance.u.log("You can check updates at http://dev.bukkit.org/server-mods/fakeplayers/");
             //FakePlayersOnline.instance.u.log("or you can try to use ProtocolLib to override compatibility issues");
         }
     }
 
-    public static String getMinecraftVersion(){
+    public static String getMinecraftVersion() {
         return version;
     }
 
-    public static boolean isTestedVersion(){
+    public static boolean isTestedVersion() {
         if (version.isEmpty()) return true;
-        for (int i = 0; i< tested_versions.length;i++){
+        for (int i = 0; i < tested_versions.length; i++) {
             if (tested_versions[i].equalsIgnoreCase(version)) return true;
         }
         return false;
     }
 
-    public static boolean isBlocked(){
+    public static boolean isBlocked() {
         return block_executing;
     }
 
 
-    private static Class<?> nmsClass(String classname) throws Exception{
-        return Class.forName(nmsPrefix+classname);
+    private static Class<?> nmsClass(String classname) throws Exception {
+        return Class.forName(nmsPrefix + classname);
     }
 
-    private static Class<?> cboClass(String classname) throws Exception{
-        return Class.forName(cboPrefix+classname);
+    private static Class<?> cboClass(String classname) throws Exception {
+        return Class.forName(cboPrefix + classname);
     }
 
-    public static int getPlayerPing (Player p){
+    public static int getPlayerPing(Player p) {
         if (block_executing) return 0;
         try {
             Object craftEntity = p;
             Object nmsPlayer = CraftEntity_entity.get(craftEntity);
             return entityPlayer_ping.getInt(nmsPlayer);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return 0;
         }

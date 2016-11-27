@@ -23,6 +23,7 @@
 
 package me.fromgate.fakeplayersonline;
 
+import me.fromgate.fakeplayersonline.playercache.PlayerCache;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -33,7 +34,7 @@ public class FPOCmd implements CommandExecutor {
     FakePlayersOnline plg;
     FPOUtil u;
 
-    public FPOCmd (FakePlayersOnline plg){
+    public FPOCmd(FakePlayersOnline plg) {
         this.plg = plg;
         this.u = plg.u;
     }
@@ -41,23 +42,23 @@ public class FPOCmd implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender p, Command cmd, String cmdLabel, String[] args) {
-        if ((args.length>0)&&(u.checkCmdPerm(p, args[0]))){
-            if (args.length==1) return ExecuteCmd (p, args[0]);
-            else if (args.length==2) return ExecuteCmd (p, args[0],args[1]);
-            else if (args.length>2){
+        if ((args.length > 0) && (u.checkCmdPerm(p, args[0]))) {
+            if (args.length == 1) return ExecuteCmd(p, args[0]);
+            else if (args.length == 2) return ExecuteCmd(p, args[0], args[1]);
+            else if (args.length > 2) {
                 String arg = args[1];
-                for (int i=2; i<args.length; i++)
-                    arg = arg+" "+args[i];
-                return ExecuteCmd (p, args[0],arg);
+                for (int i = 2; i < args.length; i++)
+                    arg = arg + " " + args[i];
+                return ExecuteCmd(p, args[0], arg);
             }
-        } else u.printMSG(p, "cmd_cmdpermerr",'c');
+        } else u.printMSG(p, "cmd_cmdpermerr", 'c');
         return false;
     }
 
-    public boolean ExecuteCmd (CommandSender p, String cmd){
-        if (cmd.equalsIgnoreCase("help")){
+    public boolean ExecuteCmd(CommandSender p, String cmd) {
+        if (cmd.equalsIgnoreCase("help")) {
             u.PrintHlpList(p, 1, 12);
-        } else if (cmd.equalsIgnoreCase("lock")){
+        } else if (cmd.equalsIgnoreCase("lock")) {
             plg.serverLocked = !plg.serverLocked;
             if (plg.serverLocked) {
                 plg.lockServerKick();
@@ -65,109 +66,110 @@ public class FPOCmd implements CommandExecutor {
             } else u.printMSG(p, "msg_serverunlocked");
 
 
-        } else if (cmd.equalsIgnoreCase("slots")){	
+        } else if (cmd.equalsIgnoreCase("slots")) {
             plg.enableFakeMaxPlayers = !plg.enableFakeMaxPlayers;
-            u.printEnDis(p, "msg_maxplayers",plg.enableFakeMaxPlayers);
-        } else if (cmd.equalsIgnoreCase("listcmd")){	
+            u.printEnDis(p, "msg_maxplayers", plg.enableFakeMaxPlayers);
+        } else if (cmd.equalsIgnoreCase("listcmd")) {
             plg.listCommandOverride = !plg.listCommandOverride;
-            u.printEnDis(p, "msg_fakelistcmdoverride",plg.listCommandOverride);
-        } else if (cmd.equalsIgnoreCase("serverlist")){
-            plg.enableFakeServerList=!plg.enableFakeServerList;
-            u.printEnDis(p, "msg_fakeserverlist",plg.enableFakeServerList);
-        } else if (cmd.equalsIgnoreCase("online")){
-            plg.enableFixedCounter=!plg.enableFixedCounter;
-            u.printEnDis(p, "msg_fixedseverlist",plg.enableFixedCounter);			
-        } else if (cmd.equalsIgnoreCase("motd")){
+            u.printEnDis(p, "msg_fakelistcmdoverride", plg.listCommandOverride);
+        } else if (cmd.equalsIgnoreCase("serverlist")) {
+            plg.enableFakeServerList = !plg.enableFakeServerList;
+            u.printEnDis(p, "msg_fakeserverlist", plg.enableFakeServerList);
+        } else if (cmd.equalsIgnoreCase("online")) {
+            plg.enableFixedCounter = !plg.enableFixedCounter;
+            u.printEnDis(p, "msg_fixedseverlist", plg.enableFixedCounter);
+        } else if (cmd.equalsIgnoreCase("motd")) {
             plg.fakeMotd = !plg.fakeMotd;
-            u.printEnDis(p, "msg_fakemotd",plg.fakeMotd);
-        } else if (cmd.equalsIgnoreCase("list")){
-            if (plg.fakePlayers.size()>0){
-                String str ="";
-                for (int i = 0; i<plg.fakePlayers.size();i++)
-                    str = str +", "+plg.fakePlayers.get(i);
+            u.printEnDis(p, "msg_fakemotd", plg.fakeMotd);
+        } else if (cmd.equalsIgnoreCase("list")) {
+            if (plg.fakePlayers.size() > 0) {
+                String str = "";
+                for (int i = 0; i < plg.fakePlayers.size(); i++)
+                    str = str + ", " + plg.fakePlayers.get(i);
                 str = str.replaceFirst(", ", "");
-                u.printMSG(p, "msg_fplist",str);
+                u.printMSG(p, "msg_fplist", str);
             } else u.printMSG(p, "msg_fplistempty");
         } else if (cmd.equalsIgnoreCase("real")) {
             plg.real = (!plg.real);
             ShowList.refreshOnlineList();
             u.printEnDis(p, "msg_realstatus", plg.real);
-        } else if (cmd.equalsIgnoreCase("fake")){
+        } else if (cmd.equalsIgnoreCase("fake")) {
             plg.fake = !plg.fake;
             u.printEnDis(p, "msg_fakestatus", plg.fake);
             ShowList.refreshOnlineList();
-        } else if (cmd.equalsIgnoreCase("npc")){
-            if (FPOCitizens12x.isEnabled()){
+        } else if (cmd.equalsIgnoreCase("npc")) {
+            if (CitizensUtil.isEnabled()) {
                 plg.npc = !plg.npc;
                 u.printEnDis(p, "msg_npcstatus", plg.npc);
                 plg.restartTicks();
                 ShowList.refreshOnlineList();
-            } else u.printMSG(p, "msg_citizenserror",'c');
-        } else if (cmd.equalsIgnoreCase("reload")){
+            } else u.printMSG(p, "msg_citizenserror", 'c');
+        } else if (cmd.equalsIgnoreCase("reload")) {
             plg.reloadConfig();
             plg.loadCfg();
             plg.restartTicks();
             ShowList.refreshOnlineList();
             u.printMSG(p, "msg_reload");
-        } else if (cmd.equalsIgnoreCase("cfg")){
+        } else if (cmd.equalsIgnoreCase("cfg")) {
             u.showCfg(p);
         } else return false;
-        plg.saveCfg();	
+        plg.saveCfg();
 
         return true;
     }
 
-    public void broadcastJoinLeaveMsg (String message, String fakeName){
-        for (Player p : Bukkit.getOnlinePlayers()){
-            u.printMsg(p, message.replace("%player%", p.hasPermission("fakeplayers.config") ? fakeName+" (fake)" : fakeName));
+    public void broadcastJoinLeaveMsg(String message, String fakeName) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            u.printMsg(p, message.replace("%player%", p.hasPermission("fakeplayers.config") ? fakeName + " (fake)" : fakeName));
         }
-        
+
     }
-    
-    public boolean ExecuteCmd (CommandSender p, String cmd, String arg){
-        if (cmd.equalsIgnoreCase("add")){
+
+    public boolean ExecuteCmd(CommandSender p, String cmd, String arg) {
+        if (cmd.equalsIgnoreCase("add")) {
             plg.fakePlayers.add(arg);
+            PlayerCache.getPlayerUnit(arg);
             u.printMSG(p, "msg_fakeadded", arg);
             ShowList.refreshOnlineList();
-        } else if (cmd.equalsIgnoreCase("join")){
+        } else if (cmd.equalsIgnoreCase("join")) {
             plg.fakePlayers.add(arg);
-            broadcastJoinLeaveMsg(plg.joinMessage,arg);
+            broadcastJoinLeaveMsg(plg.joinMessage, arg);
             ShowList.refreshOnlineList();
-        } else if (cmd.equalsIgnoreCase("leave")){
-            if (plg.fakePlayers.contains(arg)){
+        } else if (cmd.equalsIgnoreCase("leave")) {
+            if (plg.fakePlayers.contains(arg)) {
                 plg.fakePlayers.remove(arg);
-                broadcastJoinLeaveMsg(plg.leaveMessage,arg);
+                broadcastJoinLeaveMsg(plg.leaveMessage, arg);
                 ShowList.refreshOnlineList();
             } else u.printMSG(p, "msg_fakeunknown", arg);
-        } else if (cmd.equalsIgnoreCase("listcmd")){
+        } else if (cmd.equalsIgnoreCase("listcmd")) {
             plg.listCommands = arg;
             plg.listCommands = plg.listCommands.replace(" ", ",");
             plg.listCommands = plg.listCommands.replace(",,", ",");
             u.printMSG(p, "msg_listcmdalias", plg.listCommands);
-        } else if (cmd.equalsIgnoreCase("del")){
-            if (plg.fakePlayers.contains(arg)){
+        } else if (cmd.equalsIgnoreCase("del")) {
+            if (plg.fakePlayers.contains(arg)) {
                 plg.fakePlayers.remove(arg);
                 u.printMSG(p, "msg_fakeremoved", arg);
                 ShowList.refreshOnlineList();
             } else u.printMSG(p, "msg_fakeunknown", arg);
-        } else if (cmd.equalsIgnoreCase("online")){
-            if (u.isInteger(arg)){
+        } else if (cmd.equalsIgnoreCase("online")) {
+            if (u.isInteger(arg)) {
                 plg.enableFixedCounter = true;
                 plg.fixedCounter = Integer.parseInt(arg);
                 u.printMSG(p, "msg_fixedonline", plg.fixedCounter);
             } else u.printMSG(p, "msg_wrongfixedonline", arg);
-        } else if (cmd.equalsIgnoreCase("slots")){
-            if (u.isInteger(arg)){
+        } else if (cmd.equalsIgnoreCase("slots")) {
+            if (u.isInteger(arg)) {
                 plg.enableFakeMaxPlayers = true;
                 plg.fakeMaxPlayers = Integer.parseInt(arg);
                 u.printMSG(p, "msg_maxplayersslot", plg.fakeMaxPlayers);
-            } else u.printMSG(p, "msg_wrongfixedonline", arg); 
-        } else if (cmd.equalsIgnoreCase("motd")){
-            if (arg.isEmpty()||(arg.equalsIgnoreCase("-clear"))) plg.motd = "&4FakePlayersOnline &6installed!";
+            } else u.printMSG(p, "msg_wrongfixedonline", arg);
+        } else if (cmd.equalsIgnoreCase("motd")) {
+            if (arg.isEmpty() || (arg.equalsIgnoreCase("-clear"))) plg.motd = "&4FakePlayersOnline &6installed!";
             else plg.motd = arg;
             plg.fakeMotd = true;
             u.printMSG(p, "msg_motd", arg);
-        } else if (cmd.equalsIgnoreCase("help")){
+        } else if (cmd.equalsIgnoreCase("help")) {
             int pnum = 1;
             if (u.isIntegerGZ(arg)) pnum = Integer.parseInt(arg);
             u.PrintHlpList(p, pnum, 12);
